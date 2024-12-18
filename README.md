@@ -1,17 +1,28 @@
-# Fonctionnement  & Programmes
+# Fonctionnement et Programmes
 
-Le programme **`main.py`** **`https://wokwi.com/projects/417291363808846849`** (MicroPython) sur l'ESP32 rassemble toutes les fonctions des capteurs (HX711 et MPU6500) et utilise ensuite le module **`com.py`** pour envoyer les données au Garmin via BLE.
+Le programme **`main.py`** ([Lien vers le projet sur Wokwi](https://wokwi.com/projects/417291363808846849)) utilise MicroPython sur l'ESP32 pour gérer les capteurs HX711 (poids) et MPU6500 (accéléromètre et gyroscope). Il utilise ensuite le module **`com.py`** pour envoyer les données de puissance au Garmin via Bluetooth Low Energy (BLE).
 
-Le programme **`FakeBikePowerMeter.ino`** fait la même chose, mais en C++ pour Arduino.
+Le programme **`FakeBikePowerMeter.ino`** implémente la même fonctionnalité en C++ pour Arduino.
 
 ---
-# Problème :(
-Le garmin réuissi à détecter le ESP32 avec **`com.py`**, mais ensuite il n'arrive pas vraiment à se connecter :( et enncore moins recevoir des données. Au début, j'ai écrit un programme **`Cadence and speed.py`** dans lequel le Garmin réussi à se connecter, mais pas recevoir de données.
-# But
-Faire marcher le programme pour envoyer les données de puissance (& si possible cadence) de **`main.py`**  vers le compteur Grmin
-# Recherche
 
-## UUIDs utilisés pour la communication BLE (protocol BLE / Assigned_Numbers.pdf)
+## Problème rencontré :(
+
+Le Garmin réussit à détecter l'ESP32 avec **`com.py`**, mais il rencontre des difficultés pour établir une connexion stable et encore plus pour recevoir les données. Au départ, j'avais écrit un programme **`Cadence and Speed.py`** dans lequel le Garmin parvenait à se connecter, mais ne recevait pas de données.
+
+---
+
+## Objectif
+
+Faire fonctionner le programme afin d'envoyer les données de puissance (et éventuellement de cadence) de **`main.py`** vers le compteur Garmin.
+
+---
+
+## Recherche
+
+### UUIDs utilisés pour la communication BLE (selon le protocole BLE / **Assigned_Numbers.pdf**)
+
+Voici les UUIDs associés aux services et caractéristiques utilisés pour la communication avec le Garmin :
 
 - **Cycling Power Service UUID** :  
   `CYCLING_POWER_SERVICE_UUID = bluetooth.UUID(0x1818)`  
@@ -31,35 +42,36 @@ Faire marcher le programme pour envoyer les données de puissance (& si possible
 
 - **Instantaneous Power Flag** :  
   `FLAGS_INSTANTANEOUS_POWER = 0x02`  
-  Indique une mesure de puissance instantanée : `'00000010'`
+  Ce drapeau indique qu'il s'agit d'une mesure de puissance instantanée : `'00000010'`
 
 ---
 
-# Bibliothèques python utilisées
+## Bibliothèques Python utilisées
 
 - **`asyncio`** :  
-  Permet de gérer plusieurs tâches simultanément sans bloquer le programme principal, essentiel pour le capteur HX711.
+  Permet de gérer plusieurs tâches simultanément sans bloquer le programme principal, essentiel pour la gestion des capteurs comme HX711.
 
 - **`aioble`** :  
-  Permet la gestion des communications Bluetooth Low Energy (BLE), pour établir des connexions BLE et échanger des données.
+  Gère les communications Bluetooth Low Energy (BLE) et permet de créer des connexions BLE ainsi que d'envoyer et recevoir des données.
 
 - **`bluetooth`** :  
   Fournit des outils pour travailler avec Bluetooth Classic et Bluetooth Low Energy (BLE), notamment pour la gestion des UUIDs.
 
 - **`struct`** :  
-  Permet de travailler avec des données binaires, essentiel pour envoyer et recevoir des informations via BLE dans un format binaire.
+  Permet de travailler avec des données binaires, ce qui est essentiel pour envoyer et recevoir des informations dans un format binaire via BLE.
 
 ---
 
-# Envoi des données (protocol BLE / CPS_v1.1.pdf)
+## Envoi des données (selon le protocole BLE / **CPS_v1.1.pdf**)
 
 ### Envoi de la puissance
 
-Pour envoyer uniquement la puissance, on doit utiliser la fonction **`pack`** de la bibliothèque **`struct`** pour empaqueter les données en binaire dans l'ordre **little-endian** (**`<`**), comme suit :
+Pour envoyer uniquement la puissance, il faut utiliser la fonction **`pack`** de la bibliothèque **`struct`** afin d'empaqueter les données en binaire, dans l'ordre **little-endian** (**`<`**), comme suit :
 ```python
-power_data = struct.pack("<Hh", flags, power)  # empaquetage de la puissance
+
+power_data = struct.pack("<HH", flags, power)  # empaquetage de la puissance
 ```
 Pour envoyer la puissance et cadence :
 ```python
-data = struct.pack('<HHHH', flags, instant_power, crank_revs, last_event_time)
+data = struct.pack('<HHIH', flags, instant_power, crank_revs, last_event_time)
 
