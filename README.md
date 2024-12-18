@@ -1,8 +1,8 @@
 # Fonctionnement et Programmes
 
-Le programme **`main.py`** ([Lien vers le projet sur Wokwi](https://wokwi.com/projects/417291363808846849)) utilise MicroPython sur l'ESP32 pour gérer les capteurs HX711 (poids) et MPU6500 (accéléromètre et gyroscope). Il utilise ensuite le module **`com.py`** pour envoyer les données de puissance au Garmin via Bluetooth Low Energy (BLE).
+Le programme **`main.py`** ([lien vers le projet sur Wokwi](https://wokwi.com/projects/417291363808846849)) utilise MicroPython sur l'ESP32 pour gérer les capteurs HX711 (poids) et MPU6500 (accéléromètre et gyroscope). Il utilise ensuite le module **`com.py`** pour envoyer les données de puissance au Garmin via Bluetooth Low Energy (BLE).
 
-Le programme **`FakeBikePowerMeter.ino`** implémente la même fonctionnalité en C++ pour Arduino.
+Le programme **`FakeBikePowerMeter.ino`** ([lien vers le projet github](https://github.com/JohanWieslander/ESP32-Bike-Powermeter/blob/master/FakeBikePowerMeter.ino)) implémente la même fonctionnalité en C++ pour Arduino.
 
 ---
 
