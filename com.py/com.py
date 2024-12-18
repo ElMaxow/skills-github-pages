@@ -46,17 +46,13 @@ async def main():
     aioble.register_services(power_service)
 
     print("Démarrage de la publicité BLE...")
+    print("En attente de connexion...")
+    connection = await aioble.advertise(250_000, name="ESP32-Power", services=[bluetooth.UUID(CSC_SERVICE_UUID)],)
+    print("Connexion établie avec", connection.device)
 
     # Démarrer la publicité BLE
-    while True:
-        try:
-            print("En attente de connexion...")
-            connection = await aioble.advertise(
-                250_000,
-                name="ESP32-Power",
-                services=[bluetooth.UUID(CSC_SERVICE_UUID)],
-            )
-            print("Connexion établie avec", connection.device)
+    while connection.is_connected():
+        try:   
             # Démarrer la tâche d'envoi de puissance
             await power_data_task(power_characteristic)
             print("Déconnexion du périphérique.")
