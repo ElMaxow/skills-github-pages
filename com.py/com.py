@@ -7,12 +7,12 @@ from machine import Pin
 from random import randint
 
 # UUIDs for BLE communication
-CPS_SERVICE_UUID = 			UUID(0x1818)  # UUID for the Cycling Power Service
+CPS_SERVICE_UUID = UUID(0x1818)  # UUID for the Cycling Power Service
 CPS_MEASUREMENT_CHAR_UUID = UUID(0x2A63)  # UUID for power measurement
-CPS_FEATURE_CHAR_UUID = 	UUID(0x2A65)  # UUID for CPS feature characteristic
-SENSOR_LOCATION_UUID = 		UUID(0x2A5D)  # UUID for sensor location
-DEVICE_NAME_UUID = 			UUID(0x2A00)  # UUID for the Device Name
-APPEARANCE_UUID = 			UUID(0x2A01)  # UUID for Appearance
+CPS_FEATURE_CHAR_UUID = UUID(0x2A65)  # UUID for CPS feature characteristic
+SENSOR_LOCATION_UUID = UUID(0x2A5D)  # UUID for sensor location
+DEVICE_NAME_UUID = UUID(0x2A00)  # UUID for the Device Name
+APPEARANCE_UUID = UUID(0x2A01)  # UUID for Appearance
 
 FEATURES = 0x0004000C  # Example bitmask for CPS capabilities
 LOCATION = 0x03 # Hub (location)
