@@ -37,17 +37,15 @@ def get_power_data():
 
 # Task to periodically update power data
 def power_data_task():
-     a=2  # Placeholder (function implementation is incomplete)
-
-    # power_characteristic = aioble.Characteristic(power_service, bluetooth.UUID(CPS_MEASUREMENT_CHAR_UUID), read = True, notify = True, capture = True)
-    # power_data = get_power_data()
-    # Write data to the characteristic
-    # print(power_data, "yes")
-    # power_characteristic.notify(power_data)
-
-    # power_characteristic.write(power_data, send_update=True)
-    # power = struct.unpack("<Hh", power_data)[1]  # Extract power for display
-    # print(f"Power sent: {power} W")
+    try:
+        power_data = get_power_data()
+        # Write data to the characteristic
+        #power_characteristic.notify(power_data)
+        power_characteristic.write(power_data, send_update=True)
+        power = struct.unpack("<Hh", power_data)[1]  # Extract power for display
+        print(f"Power sent: {power} W : {power_data}")
+    except Exception as e:
+            print(f"Error updating power data: {e}")
 
 # Main function to set up the BLE device
 async def main():
