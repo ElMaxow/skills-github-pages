@@ -1,66 +1,92 @@
 from micropython import const
 import asyncio
 import aioble
-import bluetooth
+from bluetooth import UUID
 import struct
 from machine import Pin
 from random import randint
 
-# UUIDs pour la communication BLE
-CSC_SERVICE_UUID = 0x1818  # UUID du Cycling Power Service
-CSC_MEASUREMENT_CHAR_UUID = 0x2A63  # UUID de la mesure de puissance
+# UUIDs for BLE communication
+CPS_SERVICE_UUID = 			UUID(0x1818)  # UUID for the Cycling Power Service
+CPS_MEASUREMENT_CHAR_UUID = UUID(0x2A63)  # UUID for power measurement
+CPS_FEATURE_CHAR_UUID = 	UUID(0x2A65)  # UUID for CPS feature characteristic
+SENSOR_LOCATION_UUID = 		UUID(0x2A5D)  # UUID for sensor location
+DEVICE_NAME_UUID = 			UUID(0x2A00)  # UUID for the Device Name
+APPEARANCE_UUID = 			UUID(0x2A01)  # UUID for Appearance
 
-# Drapeaux pour les données
-FLAGS_INSTANTANEOUS_POWER = 0x02  # Indique une mesure de puissance instantanée
+FEATURES = 0x0004000C  # Example bitmask for CPS capabilities
+LOCATION = 0x03 # Hub (location)
 
-# Simule la lecture des données de puissance
+# Appearance configuration (Cycling Power Sensor)
+APPEARANCE_CYCLING_POWER_SENSOR = 0x0484
+
+# Flags for data
+FLAGS_INSTANTANEOUS_POWER = 0x02  # Indicates instantaneous power measurement
+
+nom = "ESP32-Power"  # Device name
+
+power_service = aioble.Service(CPS_SERVICE_UUID)
+power_characteristic = aioble.Characteristic(power_service, CPS_MEASUREMENT_CHAR_UUID, read = True, notify = True, capture = True)
+
+# Simulates reading power data
 def get_power_data():
-    # Génère une puissance aléatoire entre 100W et 400W
+    # Generate a random power value between 100W and 400W
     power = randint(100, 400)
-    # Structure des données : [Flags (2 octets), Instantaneous Power (2 octets)]
+    # Data structure: [Flags (2 bytes), Instantaneous Power (2 bytes)]
     return struct.pack("<Hh", FLAGS_INSTANTANEOUS_POWER, power)
 
-# Tâche pour mettre à jour périodiquement les données de puissance
-async def power_data_task(power_characteristic):
-    while True:
-        try:
-            power_data = get_power_data()
-            # Écriture des données dans la caractéristique
-            power_characteristic.write(power_data, send_update=True)
-            power = struct.unpack("<Hh", power_data)[1]  # Extraire la puissance
-            print(f"Puissance envoyée : {power} W")
-            await asyncio.sleep(1)  # Envoi toutes les secondes
-        except Exception as e:
-            print("Erreur lors de l'envoi des données de puissance :", e)
-            break
+# Task to periodically update power data
+def power_data_task():
+     a=2  # Placeholder (function implementation is incomplete)
 
-# Fonction principale pour configurer le périphérique BLE
+    # power_characteristic = aioble.Characteristic(power_service, bluetooth.UUID(CPS_MEASUREMENT_CHAR_UUID), read = True, notify = True, capture = True)
+    # power_data = get_power_data()
+    # Write data to the characteristic
+    # print(power_data, "yes")
+    # power_characteristic.notify(power_data)
+
+    # power_characteristic.write(power_data, send_update=True)
+    # power = struct.unpack("<Hh", power_data)[1]  # Extract power for display
+    # print(f"Power sent: {power} W")
+
+# Main function to set up the BLE device
 async def main():
-    print("Initialisation du périphérique BLE...")
+    print("Initializing BLE device...")
 
-    # Enregistrer le service et la caractéristique
-    power_service = aioble.Service(bluetooth.UUID(CSC_SERVICE_UUID))
-    power_characteristic = aioble.Characteristic(
-        power_service, bluetooth.UUID(CSC_MEASUREMENT_CHAR_UUID), read=True, notify=True
-    )
+    # Register services and characteristics
+    # notifiy = True
+    
+    sensor_location_characteristic = aioble.Characteristic(power_service, SENSOR_LOCATION_UUID, read=True)
+    sensor_location_characteristic.write(struct.pack("<B", LOCATION))
+    
+    cps_feature_characteristic = aioble.Characteristic(power_service, CPS_FEATURE_CHAR_UUID, read=True)
+    cps_feature_characteristic.write(struct.pack("<H", FEATURES))  # Example: bitmask of capabilities
+    
+    device_name_characteristic = aioble.Characteristic(power_service, DEVICE_NAME_UUID, read=True)
+    device_name_characteristic.write(b"{nom}")
+
+    appearance_characteristic = aioble.Characteristic(power_service, APPEARANCE_UUID, read=True)
+    appearance_characteristic.write(struct.pack("<H", APPEARANCE_CYCLING_POWER_SENSOR))
+
     aioble.register_services(power_service)
 
-    print("Démarrage de la publicité BLE...")
-    print("En attente de connexion...")
-    connection = await aioble.advertise(250_000, name="ESP32-Power", services=[bluetooth.UUID(CSC_SERVICE_UUID)],)
-    print("Connexion établie avec", connection.device)
+    print("Starting BLE advertising...")
 
-    # Démarrer la publicité BLE
+    # Start BLE advertising
+    print("Waiting for connection...")
+    connection = await aioble.advertise(250_000, name = nom, services = [CPS_SERVICE_UUID],)
+    print("Connected to", connection.device)
+
     while connection.is_connected():
-        try:   
-            # Démarrer la tâche d'envoi de puissance
-            await power_data_task(power_characteristic)
-            print("Déconnexion du périphérique.")
-        except Exception as e:
-            print("Erreur lors de la publicité ou de la connexion :", e)
+        power_data_task()
+        await asyncio.sleep(1)
+    
+    print('disconnected')
+    await asyncio.sleep(3)
+    asyncio.run(main())
 
-# Exécution de la boucle principale
+# Execute the main loop
 try:
     asyncio.run(main())
 except KeyboardInterrupt:
-    print("Programme interrompu.")
+    print("Program interrupted.")
