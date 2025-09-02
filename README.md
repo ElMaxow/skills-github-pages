@@ -1,6 +1,6 @@
 # Fonctionnement et Programmes
 
-the workintg code is com.py in the /com folder
+**the workintg code is com.py in the /com.py folder**
 
 Le programme **`main.py`** ([lien vers le projet sur Wokwi](https://wokwi.com/projects/417291363808846849)) utilise MicroPython sur l'ESP32 pour gérer les capteurs HX711 (poids) et MPU6500 (accéléromètre et gyroscope). Il utilise ensuite le module **`com.py`** pour envoyer les données de puissance au Garmin via Bluetooth Low Energy (BLE).
 
